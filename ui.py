@@ -265,9 +265,12 @@ class AuctionApp:
 
         if result:
             currency, price, prefix = result
-            # Formata a string de saída
+            
+            # Formata o preço no padrão Brasileiro: 77.730,59
+            formatted_price = f"{price:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            
             prefix_text = f"{prefix} " if prefix else ""
-            display_text = f"{prefix_text}{currency} {price:.2f}"
+            display_text = f"{prefix_text}{currency} {formatted_price}"
             
             # Mostra o resultado na tela
             self.result_frame.pack(pady=20, fill="x")

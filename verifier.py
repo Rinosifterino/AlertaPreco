@@ -68,13 +68,34 @@ def extract_price_and_currency(url: str, selector: Optional[str] = None) -> Opti
                     # Define a moeda final (prioriza o que foi achado)
                     currency = curr_start or curr_end or "Unit"
 
-                    # Limpeza e conversão do número para float
-                    if "," in num_str and "." in num_str:
-                        num_str = num_str.replace(".", "").replace(",", ".")
-                    elif "," in num_str:
-                        num_str = num_str.replace(",", ".")
+                    # -----------------------------------------------------------------
+                    # LIMPEZA INTELIGENTE DE NÚMEROS (Aceita US e BR)
+                    # -----------------------------------------------------------------
+                    clean_num = num_str.strip()
+                    last_dot = clean_num.rfind(".")
+                    last_comma = clean_num.rfind(",")
+
+                    if last_dot != -1 and last_comma != -1:
+                        # Tem os dois separadores. O que aparecer por último é o decimal.
+                        if last_dot > last_comma:
+                            # Formato US (ex: 77,730.59) -> remove a vírgula (milhar)
+                            clean_num = clean_num.replace(",", "")
+                        else:
+                            # Formato BR (ex: 77.730,59) -> remove o ponto, troca vírgula por ponto
+                            clean_num = clean_num.replace(".", "").replace(",", ".")
+                    elif last_dot != -1:
+                        # Só tem ponto. Se tiver exatamente 3 casas depois, assumimos que é milhar (ex: 77.730)
+                        if len(clean_num) - last_dot - 1 == 3:
+                            clean_num = clean_num.replace(".", "")
+                    elif last_comma != -1:
+                        # Só tem vírgula. Se tiver exatamente 3 casas depois, assumimos que é milhar (ex: 77,730)
+                        if len(clean_num) - last_comma - 1 == 3:
+                            clean_num = clean_num.replace(",", "")
+                        else:
+                            clean_num = clean_num.replace(",", ".")
                     
-                    price = float(num_str)
+                    price = float(clean_num)
+                    # -----------------------------------------------------------------
                     
                     return currency, price, prefix
 
