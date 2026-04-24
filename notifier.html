@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Python: module notifier</title>
+</head><body>
+
+<table class="heading">
+<tr class="heading-text decor">
+<td class="title">&nbsp;<br><strong class="title">notifier</strong></td>
+<td class="extra"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cgablu%5Cdownloads%5Ctrab-pablo%5Calertapreco%5Cnotifier.py">c:\users\gablu\downloads\trab-pablo\alertapreco\notifier.py</a></td></tr></table>
+    <p><span class="code">Módulo&nbsp;responsável&nbsp;exclusivamente&nbsp;pelo&nbsp;disparo&nbsp;genérico&nbsp;de&nbsp;e-mails&nbsp;via&nbsp;SMTP.</span></p>
+<p>
+<table class="section">
+<tr class="decor pkg-content-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Modules</strong></td></tr>
+    
+<tr><td class="decor pkg-content-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><table><tr><td class="multicolumn"><a href="os.html">os</a><br>
+</td><td class="multicolumn"><a href="smtplib.html">smtplib</a><br>
+</td><td class="multicolumn"></td><td class="multicolumn"></td></tr></table></td></tr></table><p>
+<table class="section">
+<tr class="decor functions-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Functions</strong></td></tr>
+    
+<tr><td class="decor functions-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><dl><dt><a name="-send_email_notification"><strong>send_email_notification</strong></a>(target_email: str, subject: str, body: str) -&gt; None</dt><dd><span class="code">Envia&nbsp;um&nbsp;e-mail&nbsp;genérico&nbsp;utilizando&nbsp;as&nbsp;credenciais&nbsp;do&nbsp;ambiente&nbsp;(.env).<br>
+&nbsp;<br>
+As&nbsp;credenciais&nbsp;são&nbsp;extraídas&nbsp;dinamicamente&nbsp;durante&nbsp;a&nbsp;execução&nbsp;da&nbsp;função.<br>
+&nbsp;<br>
+:param&nbsp;target_email:&nbsp;Endereço&nbsp;de&nbsp;e-mail&nbsp;do&nbsp;destinatário.<br>
+:param&nbsp;subject:&nbsp;Título&nbsp;(assunto)&nbsp;do&nbsp;e-mail.<br>
+:param&nbsp;body:&nbsp;Conteúdo&nbsp;principal&nbsp;da&nbsp;mensagem.</span></dd></dl>
+</td></tr></table><p>
+<table class="section">
+<tr class="decor data-decor heading-text">
+<td class="section-title" colspan=3>&nbsp;<br><strong class="bigsection">Data</strong></td></tr>
+    
+<tr><td class="decor data-decor"><span class="code">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td><td>&nbsp;</td>
+<td class="singlecolumn"><strong>SMTP_PORT</strong> = 465<br>
+<strong>SMTP_SERVER</strong> = 'smtp.gmail.com'</td></tr></table>
+</body></html>

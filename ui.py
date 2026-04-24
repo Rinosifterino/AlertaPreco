@@ -13,6 +13,7 @@ from tkinter import messagebox
 # Importações dos seus módulos (precisam estar na mesma pasta)
 from verifier import extract_price_and_currency
 from notifier import send_email_notification
+from monitor import start_monitoring
 
 # =============================================================================
 # CONSTANTS
@@ -183,29 +184,36 @@ class AuctionApp:
             messagebox.showerror("Falha na Extração", "Não foi possível encontrar um valor válido na página.")
 
     def _save_value(self) -> None:
-        """Inicia o monitoramento e dispara o e-mail em segundo plano."""
+        """Inicia o loop contínuo de monitoramento em segundo plano."""
         print(f"[LOG] Monitoramento iniciado pelo usuário: {self.user_name}")
         url = self.entry_url.get().strip()
+        selector = self.entry_css.get().strip() or None
 
-        # Inicia a thread de disparo do e-mail
-        email_thread = threading.Thread(target=self._send_confirmation_email, args=(url,))
-        email_thread.start()
+        # Bloqueia a UI para indicar que está rodando
+        self.save_button.configure(state="disabled", fg_color="#C0392B", text="Live Tracking Active")
+        messagebox.showinfo("Monitoring Active", "O sistema está agora monitorando o leilão a cada 60 segundos!")
 
-        messagebox.showinfo("Monitoring Active", "Configuration saved! Check your email for confirmation.")
-        self.save_button.configure(state="disabled", fg_color="gray", text="Monitoring...")
+        # Inicia o monitor.py em uma Thread (daemon=True garante que ele feche quando você fechar a janela)
+        monitor_thread = threading.Thread(
+            target=start_monitoring, 
+            args=(url, self.user_email, 60, selector, self._update_ui_from_monitor),
+            daemon=True
+        )
+        monitor_thread.start()
 
-    def _send_confirmation_email(self, url: str) -> None:
-        """Monta e dispara o e-mail."""
-        subject = "Confirmação de Monitoramento - Auction Monitor Pro"
-        body = (f"Olá, {self.user_name}!\n\n"
-                f"Seu monitoramento foi iniciado com sucesso.\n\n"
-                f"URL Monitorada: {url}\n"
-                f"Valor Atual Encontrado: {self.current_price_text}\n\n"
-                f"O sistema irá notificá-lo caso ocorram mudanças.\n"
-                f"Equipe Auction Monitor Pro")
+    def _update_ui_from_monitor(self, new_price: float, currency: str, prefix: str) -> None:
+        """Função engatilhada pelo monitor.py para alterar os dados na tela em tempo real."""
+        formatted_price = f"{new_price:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        prefix_text = f"{prefix} " if prefix else ""
+        new_text = f"{prefix_text}{currency} {formatted_price}"
         
-        # Chama o seu arquivo notifier.py passando os dados do usuário atual
-        send_email_notification(self.user_email, subject, body)
+        # Como vem de outra Thread, usamos .after para atualizar a interface em segurança
+        self.root.after(0, self._apply_ui_update, new_text)
+
+    def _apply_ui_update(self, new_text: str) -> None:
+        """Aciona os elementos visuais na tela quando há alteração (Atendendo ao critério de avaliação)."""
+        self.value_label.configure(text=f"NOVO LANCE DETECTADO: {new_text}", text_color="#E74C3C")
+        self.save_button.configure(text="Price Updated! Still tracking...", fg_color="#E67E22")
 
 
 # =============================================================================
