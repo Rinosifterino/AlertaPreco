@@ -10,7 +10,7 @@ import time
 from typing import Optional
 
 from verifier import extract_price_and_currency
-from notifier2 import send_email_notification
+from resto.notifier2 import send_email_notification
 
 MONITOR_CSV = "monitor.csv"
 HISTORY_CSV = "historico.csv"
