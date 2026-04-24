@@ -2,20 +2,23 @@
 Modern and Organized User Interface module for the Auction Monitor application.
 
 This module provides a graphical user interface using CustomTkinter.
-It enforces PEP8 styling, proper naming conventions, and PEP257 docstrings.
+It integrates with the verifier module to fetch real web data without freezing the UI.
 """
 
 import re
+import threading
 import customtkinter as ctk
 from tkinter import messagebox
+
+# Importa a função do seu módulo de verificação (precisa estar na mesma pasta)
+from verifier import extract_price_and_currency
 
 # =============================================================================
 # CONSTANTS
 # =============================================================================
 WINDOW_TITLE = "Auction Monitor Pro"
 WINDOW_WIDTH = 550
-WINDOW_HEIGHT = 600  # Reajustado após a remoção do campo CPF
-MOCK_FETCHED_PRICE = "R$ 150,00"
+WINDOW_HEIGHT = 600
 EMAIL_REGEX_PATTERN = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
 
 # UI Theme Configuration
@@ -125,14 +128,13 @@ class AuctionApp:
         Validate the login credentials based on strict business rules.
         Requires name to be >= 3 chars, letters only, and a valid email format.
         """
-        # Get values directly from the entry widgets
-        name_input = self.entry_name.get().strip()
+        self.user_name = self.entry_name.get().strip()
         email_input = self.entry_email.get().strip()
         
-        name_without_spaces = name_input.replace(" ", "")
+        name_without_spaces = self.user_name.replace(" ", "")
 
         # Name Validation
-        if len(name_input) < 3 or not name_without_spaces.isalpha():
+        if len(self.user_name) < 3 or not name_without_spaces.isalpha():
             messagebox.showerror(
                 "Validation Error", 
                 "Name must be at least 3 characters long and contain only letters."
@@ -148,7 +150,7 @@ class AuctionApp:
             return
 
         # Transition to main screen
-        messagebox.showinfo("Success", f"Welcome, {name_input}!")
+        print(f"[LOG] Usuário logado: {self.user_name} - Email: {email_input}")
         self.login_frame.destroy()
         self._build_monitoring_screen()
 
@@ -198,14 +200,15 @@ class AuctionApp:
         self.entry_css.pack(pady=(5, 30))
 
         # Fetch Button
-        ctk.CTkButton(
+        self.fetch_button = ctk.CTkButton(
             self.main_frame, 
             text="Test & Fetch Value", 
-            command=self._fetch_auction_value,
+            command=self._start_fetch_thread,
             width=250,
             height=40,
             font=ctk.CTkFont(weight="bold")
-        ).pack(pady=10)
+        )
+        self.fetch_button.pack(pady=10)
 
         # Result Area (Hidden initially)
         self.result_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
@@ -228,30 +231,69 @@ class AuctionApp:
             font=ctk.CTkFont(weight="bold")
         )
 
-    def _fetch_auction_value(self) -> None:
-        """Simulate the scraping process and display the result for confirmation."""
+    def _start_fetch_thread(self) -> None:
+        """Valida a entrada e inicia a thread secundária para não travar a UI."""
         url = self.entry_url.get().strip()
+        selector = self.entry_css.get().strip() or None
         
-        # CSS is optional now, so we only validate the URL
-        if not url:
-            messagebox.showwarning("Missing Data", "Please provide a valid Target Auction URL.")
+        if not url.startswith("http"):
+            messagebox.showwarning("URL Inválida", "Por favor, insira uma URL válida começando com http ou https.")
             return
 
-        # Display result elements
-        self.result_frame.pack(pady=20, fill="x")
-        self.value_label.configure(text=f"Current Value: {MOCK_FETCHED_PRICE}")
-        self.value_label.pack(pady=(0, 15))
-        self.save_button.pack()
+        # Muda o visual do botão para indicar carregamento e desativa
+        self.fetch_button.configure(state="disabled", text="Buscando no site...")
+        self.result_frame.pack_forget() # Esconde o resultado anterior se houver
+        
+        # Inicia a busca em segundo plano
+        thread = threading.Thread(target=self._run_extraction_task, args=(url, selector))
+        thread.start()
+
+    def _run_extraction_task(self, url: str, selector: str) -> None:
+        """Executa a raspagem de dados (Roda fora da thread principal)."""
+        # Chama a função do seu verifier.py
+        result = extract_price_and_currency(url, selector)
+        
+        # O CustomTkinter permite atualizar a interface a partir de threads, 
+        # mas a forma mais segura no Tkinter clássico (e recomendada) é usar o .after()
+        # Aqui vamos agendar a execução da função que lida com o resultado na thread principal
+        self.root.after(0, self._handle_extraction_result, result)
+
+    def _handle_extraction_result(self, result) -> None:
+        """Recebe o resultado da thread e atualiza a interface."""
+        # Restaura o botão
+        self.fetch_button.configure(state="normal", text="Test & Fetch Value")
+
+        if result:
+            currency, price, prefix = result
+            
+            # Formata o preço no padrão Brasileiro: 77.730,59
+            formatted_price = f"{price:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            
+            prefix_text = f"{prefix} " if prefix else ""
+            display_text = f"{prefix_text}{currency} {formatted_price}"
+            
+            # Mostra o resultado na tela
+            self.result_frame.pack(pady=20, fill="x")
+            self.value_label.configure(text=f"Valor Encontrado: {display_text}")
+            self.value_label.pack(pady=(0, 15))
+            self.save_button.pack()
+            self.save_button.configure(state="normal", text="Confirm & Start Monitoring", fg_color="#2FA572")
+        else:
+            messagebox.showerror(
+                "Falha na Extração", 
+                "Não foi possível encontrar um valor válido na página. Verifique a URL ou tente inserir o CSS Selector exato."
+            )
 
     def _save_value(self) -> None:
         """Persist the configuration and lock the UI state to indicate monitoring."""
+        print(f"[LOG] Monitoramento iniciado pelo usuário: {self.user_name}")
         messagebox.showinfo("Monitoring Active", "Configuration saved! The tracker is now running.")
         self.save_button.configure(state="disabled", fg_color="gray", text="Monitoring...")
 
 
-# ============================================================================
+# =============================================================================
 # EXECUTION
-# ============================================================================
+# =============================================================================
 if __name__ == "__main__":
     app_window = ctk.CTk()
     application = AuctionApp(app_window)
