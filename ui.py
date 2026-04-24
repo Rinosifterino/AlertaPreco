@@ -173,7 +173,7 @@ class AuctionApp:
 
         if result:
             currency, price, prefix = result
-            formatted_price = f"{price:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            formatted_price = f"{price:,.4f}".replace(",", "X").replace(".", ",").replace("X", ".")
             prefix_text = f"{prefix} " if prefix else ""
             
             # Salva o texto formatado para colocar no e-mail depois
@@ -209,7 +209,7 @@ class AuctionApp:
 
     def _update_ui_from_monitor(self, new_price: float, currency: str, prefix: str) -> None:
         """Função engatilhada pelo monitor.py para alterar os dados na tela em tempo real."""
-        formatted_price = f"{new_price:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        formatted_price = f"{new_price:,.4f}".replace(",", "X").replace(".", ",").replace("X", ".")
         prefix_text = f"{prefix} " if prefix else ""
         new_text = f"{prefix_text}{currency} {formatted_price}"
         
