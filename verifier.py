@@ -27,7 +27,7 @@ def extract_price_and_currency(url: str, selector: Optional[str] = None) -> Opti
 
             raw_text = None
             
-            # 1. Tenta seletores (Usuário ou Heurística)
+            # 1. Tenta seletores
             targets = [selector] if selector else [
                 ".x-price-primary", ".x-price-approx__price", 
                 "span[itemprop='price']", ".price", ".a-price .a-offscreen"

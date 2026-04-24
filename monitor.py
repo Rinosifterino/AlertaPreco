@@ -11,7 +11,7 @@ from typing import Optional, Callable
 
 from verifier import extract_price_and_currency
 from notifier import send_email_notification
-from logger_util import log_action # Import do nosso log
+from logger_util import log_action
 
 MONITOR_CSV = "monitor.csv"
 HISTORY_CSV = "historico.csv"
@@ -37,7 +37,7 @@ def start_monitoring(
 
     print(f"[LOG] Initial price established: {prefix} {original_price} {currency}")
     
-    # 1º LOG: Salva no TXT que o monitoramento começou
+    # LOG: Salva no TXT que o monitoramento começou
     log_action(f"Monitoramento Contínuo INICIADO para URL: {url} | Preço inicial: {original_price}")
 
     # Salva estado inicial
@@ -63,21 +63,20 @@ def start_monitoring(
             print("[LOG] Failed to fetch new price in this cycle.")
             continue
 
-        # É AQUI que a variável new_price é criada
+        # variável new_price
         new_currency, new_price, new_prefix = result
         print(f"[LOG] Fetched current price: {new_prefix} {new_price} {new_currency}")
 
-        # Lógica de Leilão: Só alerta e salva se o valor AUMENTAR
+        # Alerta e salva se o valor AUMENTAR
         if new_price > current_price and _is_valid_variation(current_price, new_price):
             print("[LOG] Valid price INCREASE detected!")
             
-            # 2º LOG: Agora sim a variável new_price existe e podemos logar a mudança!
             log_action(f"MUDANÇA DETECTADA! Valor subiu de {current_price} para {new_price} na URL: {url}")
 
-            # 1. Salva os dois valores no histórico
+            # Salva os dois valores no histórico
             _append_history_csv(url, current_price, new_price, currency)
 
-            # 2. Envia o e-mail de ALERTA
+            # Envia o e-mail de alerta
             alert_subject = "Price Increase Alert: Auction Monitor"
             alert_body = (
                 f"The bid has increased!\n\n"
@@ -87,11 +86,11 @@ def start_monitoring(
             )
             send_email_notification(target_email, alert_subject, alert_body)
 
-            # 3. Avisa a UI para atualizar o número na tela
+            # Atualizar o número na tela
             if ui_callback:
                 ui_callback(new_price, new_currency, new_prefix)
 
-            # 4. Atualiza o estado atual no monitor principal
+            # Atualiza o estado atual no monitor principal
             current_price = new_price
             _update_monitor_csv(target_email, url, original_price, current_price, currency)
 

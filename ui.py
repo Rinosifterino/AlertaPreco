@@ -10,7 +10,7 @@ import threading
 import customtkinter as ctk
 from tkinter import messagebox
 
-# Importações dos seus módulos (precisam estar na mesma pasta)
+
 from verifier import extract_price_and_currency
 from notifier import send_email_notification
 from monitor import start_monitoring
@@ -24,7 +24,7 @@ WINDOW_WIDTH = 550
 WINDOW_HEIGHT = 600
 EMAIL_REGEX_PATTERN = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
 
-# UI Theme Configuration
+# Theme Configuration
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -39,7 +39,7 @@ class AuctionApp:
 
     def __init__(self, root: ctk.CTk) -> None:
         self.root = root
-        # Variáveis para guardar os dados do usuário logado
+        # Variáveis para guardar os dados do usuário
         self.user_name = ""
         self.user_email = ""
         self.current_price_text = ""

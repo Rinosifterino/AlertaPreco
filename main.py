@@ -3,7 +3,6 @@ import re
 import sys
 from dotenv import load_dotenv
 
-# Importa apenas a função procedural do monitor
 from monitor import start_monitoring
 
 
