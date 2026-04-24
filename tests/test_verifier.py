@@ -6,9 +6,12 @@ def test_extract_price_and_currency_success(mocker):
     # Simula o contexto do Playwright
     mock_playwright = mocker.patch("verifier.sync_playwright")
     
+    # MOCK DO LOGGER: Evita que o teste escreva no arquivo log.txt real
+    mocker.patch("verifier.log_action")
+    
     mock_page = MagicMock()
     
-    # [CORREÇÃO AQUI]: Ensina o mock a encontrar o elemento (count = 1)
+    # Ensina o mock a encontrar o elemento (count = 1)
     mock_page.locator.return_value.count.return_value = 1
     # Ensina o mock a retornar o texto completo de dentro do elemento
     mock_page.locator.return_value.first.inner_text.return_value = "Valor Atual: EUR 39,95"
@@ -25,7 +28,7 @@ def test_extract_price_and_currency_success(mocker):
     
     assert result is not None
     
-    # O seu verifier.py retorna (currency, price, prefix)
+    # Retorno atualizado do seu código: currency, price, prefix
     currency, price, prefix = result 
     
     assert price == 39.95
@@ -34,16 +37,37 @@ def test_extract_price_and_currency_success(mocker):
 
 def test_extract_price_and_currency_not_found(mocker):
     mock_playwright = mocker.patch("verifier.sync_playwright")
+    mocker.patch("verifier.log_action") # Impede escrita no log
+    
     mock_page = MagicMock()
-    
-    # [CORREÇÃO AQUI]: Também precisamos zerar a contagem neste teste
     mock_page.locator.return_value.count.return_value = 0
-    
     mock_page.content.return_value = "<html><body>Nenhum produto aqui</body></html>"
     
-    # Pula a configuração completa e vai direto ao retorno do launch
+    mock_playwright.return_value.__enter__.return_value.chromium.launch.return_value.new_page.return_value = mock_page
+
+    result = extract_price_and_currency("http://site-falso.com")
+    assert result is None
+
+# NOVO TESTE: Valida a sua "Limpeza Inteligente" de números
+@pytest.mark.parametrize("raw_html, expected_price", [
+    ("<html><body>US$ 77,730.59</body></html>", 77730.59),  # Formato US (Vírgula milhar, ponto decimal)
+    ("<html><body>R$ 77.730,59</body></html>", 77730.59),   # Formato BR (Ponto milhar, vírgula decimal)
+    ("<html><body>€ 1.500</body></html>", 1500.0),           # Ponto isolado como milhar
+    ("<html><body>R$ 500,00</body></html>", 500.0),          # Apenas decimal BR
+])
+def test_number_cleaning_logic(mocker, raw_html, expected_price):
+    mock_playwright = mocker.patch("verifier.sync_playwright")
+    mocker.patch("verifier.log_action")
+    
+    mock_page = MagicMock()
+    mock_page.locator.return_value.count.return_value = 0 # Força a falha do seletor para usar o HTML inteiro
+    mock_page.content.return_value = raw_html
+    
     mock_playwright.return_value.__enter__.return_value.chromium.launch.return_value.new_page.return_value = mock_page
 
     result = extract_price_and_currency("http://site-falso.com")
     
-    assert result is None
+    assert result is not None
+    _, price, _ = result # Ignoramos moeda e prefixo, focamos só no preço extraído
+    
+    assert price == expected_price
