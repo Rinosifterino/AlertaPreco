@@ -13,7 +13,6 @@ from tkinter import messagebox
 
 
 from verifier import extract_price_and_currency
-from notifier import send_email_notification
 from monitor import start_monitoring
 from logger_util import log_action
 
