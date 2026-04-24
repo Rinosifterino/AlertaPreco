@@ -5,12 +5,13 @@ This module provides a graphical user interface using CustomTkinter.
 It integrates with the verifier and notifier modules.
 """
 
+import os
 import re
 import threading
 import customtkinter as ctk
 from tkinter import messagebox
 
-# Importações dos seus módulos (precisam estar na mesma pasta)
+
 from verifier import extract_price_and_currency
 from notifier import send_email_notification
 from monitor import start_monitoring
@@ -24,7 +25,7 @@ WINDOW_WIDTH = 550
 WINDOW_HEIGHT = 600
 EMAIL_REGEX_PATTERN = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
 
-# UI Theme Configuration
+# Theme Configuration
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
@@ -39,7 +40,7 @@ class AuctionApp:
 
     def __init__(self, root: ctk.CTk) -> None:
         self.root = root
-        # Variáveis para guardar os dados do usuário logado
+        # Variáveis para guardar os dados do usuário
         self.user_name = ""
         self.user_email = ""
         self.current_price_text = ""
@@ -196,10 +197,12 @@ class AuctionApp:
         self.save_button.configure(state="disabled", fg_color="#C0392B", text="Live Tracking Active")
         messagebox.showinfo("Monitoring Active", "O sistema está agora monitorando o leilão!")
 
+        delay = int(os.getenv("delay_time"))
+
         # Inicia o monitor.py em uma Thread (daemon=True garante que ele feche quando você fechar a janela)
         monitor_thread = threading.Thread(
             target=start_monitoring, 
-            args=(url, self.user_email, 60, selector, self._update_ui_from_monitor),
+            args=(url, self.user_email, delay, selector, self._update_ui_from_monitor),
             daemon=True
         )
         monitor_thread.start()
