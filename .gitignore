@@ -1,0 +1,21 @@
+# Python (Arquivos compilados e cache)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambiente Virtual
+venv/
+.venv/
+env/
+
+# Segurança e Configurações (CRITICAL)
+.env
+
+# Dados Locais (Evita conflitos no Git Pull)
+monitor.csv
+historico.csv
+log.txt
+
+# IDEs
+.vscode/
+.idea/

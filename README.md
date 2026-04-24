@@ -1,3 +1,4 @@
+
 # 🚀 Auction Price Monitor (AlertaPreço)
 
 Sistema automatizado em Python projetado para monitorar lances e variações de preços em sites de leilões ou e-commerce. O software utiliza web scraping para detectar aumentos de valores em tempo real e notifica o usuário via e-mail.
@@ -18,3 +19,8 @@ Sistema automatizado em Python projetado para monitorar lances e variações de 
 * **Playwright**: Motor de automação para extração de dados do DOM.
 * **python-dotenv**: Gestão de credenciais sensíveis via variáveis de ambiente.
 * **CustomTkinter**: Interface visual para interação com o usuário.
+=======
+pip install -r requirements.txt  
+playwright install  
+python -m pytest -v
+
