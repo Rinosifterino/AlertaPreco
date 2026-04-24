@@ -14,7 +14,7 @@ from tkinter import messagebox
 # =============================================================================
 WINDOW_TITLE = "Auction Monitor Pro"
 WINDOW_WIDTH = 550
-WINDOW_HEIGHT = 680  # Increased slightly to fit the new CPF field
+WINDOW_HEIGHT = 600  # Reajustado após a remoção do campo CPF
 MOCK_FETCHED_PRICE = "R$ 150,00"
 EMAIL_REGEX_PATTERN = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
 
@@ -44,7 +44,6 @@ class AuctionApp:
         self.root = root
         
         self._setup_window()
-        self._initialize_variables()
         self._build_login_screen()
 
     # -------------------------------------------------------------------------
@@ -63,21 +62,13 @@ class AuctionApp:
         self.root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}+{x_coordinate}+{y_coordinate}")
         self.root.resizable(False, False)
 
-    def _initialize_variables(self) -> None:
-        """Initialize all Tkinter variables used to store user input."""
-        self.user_name = ctk.StringVar()
-        self.user_cpf = ctk.StringVar()
-        self.user_email = ctk.StringVar()
-        self.auction_url = ctk.StringVar()
-        self.css_selector = ctk.StringVar()
-
     # -------------------------------------------------------------------------
     # LOGIN SCREEN
     # -------------------------------------------------------------------------
     def _build_login_screen(self) -> None:
         """Construct and display the modern login interface."""
         self.login_frame = ctk.CTkFrame(self.root, corner_radius=20)
-        self.login_frame.pack(pady=80, padx=60, fill="both", expand=True)
+        self.login_frame.pack(pady=70, padx=60, fill="both", expand=True)
 
         # Header
         ctk.CTkLabel(
@@ -86,33 +77,37 @@ class AuctionApp:
             font=ctk.CTkFont(size=24, weight="bold")
         ).pack(pady=(40, 30))
 
-        # Input Fields with custom gray placeholders
-        ctk.CTkEntry(
+        # Name Field
+        ctk.CTkLabel(
             self.login_frame, 
-            textvariable=self.user_name, 
+            text="Nome Completo", 
+            font=ctk.CTkFont(size=12), 
+            text_color="gray"
+        ).pack(anchor="w", padx=65)
+        
+        self.entry_name = ctk.CTkEntry(
+            self.login_frame, 
             placeholder_text="escreva seu nome aqui",
-            placeholder_text_color="gray",
             width=280,
-            height=45
-        ).pack(pady=10)
+            height=40
+        )
+        self.entry_name.pack(pady=(0, 15))
 
-        ctk.CTkEntry(
+        # Email Field
+        ctk.CTkLabel(
             self.login_frame, 
-            textvariable=self.user_cpf, 
-            placeholder_text="insira seu cpf aqui",
-            placeholder_text_color="gray",
-            width=280,
-            height=45
-        ).pack(pady=10)
-
-        ctk.CTkEntry(
+            text="Endereço de E-mail", 
+            font=ctk.CTkFont(size=12), 
+            text_color="gray"
+        ).pack(anchor="w", padx=65)
+        
+        self.entry_email = ctk.CTkEntry(
             self.login_frame, 
-            textvariable=self.user_email, 
             placeholder_text="insira seu email válido aqui",
-            placeholder_text_color="gray",
             width=280,
-            height=45
-        ).pack(pady=10)
+            height=40
+        )
+        self.entry_email.pack(pady=(0, 25))
 
         # Login Button
         ctk.CTkButton(
@@ -123,16 +118,16 @@ class AuctionApp:
             height=45,
             corner_radius=8,
             font=ctk.CTkFont(size=15, weight="bold")
-        ).pack(pady=(30, 40))
+        ).pack(pady=(10, 30))
 
     def _validate_login(self) -> None:
         """
         Validate the login credentials based on strict business rules.
         Requires name to be >= 3 chars, letters only, and a valid email format.
         """
-        name_input = self.user_name.get().strip()
-        cpf_input = self.user_cpf.get().strip()
-        email_input = self.user_email.get().strip()
+        # Get values directly from the entry widgets
+        name_input = self.entry_name.get().strip()
+        email_input = self.entry_email.get().strip()
         
         name_without_spaces = name_input.replace(" ", "")
 
@@ -142,11 +137,6 @@ class AuctionApp:
                 "Validation Error", 
                 "Name must be at least 3 characters long and contain only letters."
             )
-            return
-        
-        # CPF Basic Check (Ensures it's not empty)
-        if not cpf_input:
-            messagebox.showerror("Validation Error", "CPF cannot be empty.")
             return
         
         # Strict Email Validation using Regex
@@ -178,26 +168,34 @@ class AuctionApp:
         ).pack(pady=(30, 20))
 
         # URL Input
-        ctk.CTkLabel(self.main_frame, text="Target Auction URL:", font=ctk.CTkFont(size=14)).pack(anchor="w", padx=50)
-        ctk.CTkEntry(
+        ctk.CTkLabel(
             self.main_frame, 
-            textvariable=self.auction_url, 
+            text="Target Auction URL:", 
+            font=ctk.CTkFont(size=14)
+        ).pack(anchor="w", padx=50)
+        
+        self.entry_url = ctk.CTkEntry(
+            self.main_frame, 
             placeholder_text="https://...",
-            placeholder_text_color="gray",
             width=350,
             height=40
-        ).pack(pady=(5, 20))
+        )
+        self.entry_url.pack(pady=(5, 20))
 
-        # CSS Selector Input (Now Optional)
-        ctk.CTkLabel(self.main_frame, text="Element CSS Selector (Opcional):", font=ctk.CTkFont(size=14)).pack(anchor="w", padx=50)
-        ctk.CTkEntry(
+        # CSS Selector Input (Optional)
+        ctk.CTkLabel(
             self.main_frame, 
-            textvariable=self.css_selector, 
+            text="Element CSS Selector (Opcional):", 
+            font=ctk.CTkFont(size=14)
+        ).pack(anchor="w", padx=50)
+        
+        self.entry_css = ctk.CTkEntry(
+            self.main_frame, 
             placeholder_text="e.g., .price-tag (leave blank to search all)",
-            placeholder_text_color="gray",
             width=350,
             height=40
-        ).pack(pady=(5, 30))
+        )
+        self.entry_css.pack(pady=(5, 30))
 
         # Fetch Button
         ctk.CTkButton(
@@ -232,7 +230,7 @@ class AuctionApp:
 
     def _fetch_auction_value(self) -> None:
         """Simulate the scraping process and display the result for confirmation."""
-        url = self.auction_url.get().strip()
+        url = self.entry_url.get().strip()
         
         # CSS is optional now, so we only validate the URL
         if not url:
