@@ -14,6 +14,7 @@ env/
 # Dados Locais (Evita conflitos no Git Pull)
 monitor.csv
 historico.csv
+log.txt
 
 # IDEs
 .vscode/

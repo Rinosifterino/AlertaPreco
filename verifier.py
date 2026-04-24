@@ -5,6 +5,7 @@ Módulo responsável por extrair preços, moedas e prefixos de páginas web.
 import re
 from typing import Optional, Tuple
 from playwright.sync_api import sync_playwright
+from logger_util import log_action
 
 
 def extract_price_and_currency(url: str, selector: Optional[str] = None) -> Optional[Tuple[float, str, str]]:
@@ -95,6 +96,8 @@ def extract_price_and_currency(url: str, selector: Optional[str] = None) -> Opti
                             clean_num = clean_num.replace(",", ".")
                     
                     price = float(clean_num)
+
+                    log_action(f"URL Escaneada: {url} | Resultado: {currency} {price} (Prefixo: {prefix})")
                     # -----------------------------------------------------------------
                     
                     return currency, price, prefix

@@ -10,7 +10,8 @@ import time
 from typing import Optional, Callable
 
 from verifier import extract_price_and_currency
-from notifier import send_email_notification # Corrigido para o nome certo
+from notifier import send_email_notification
+from logger_util import log_action # Import do nosso log
 
 MONITOR_CSV = "monitor.csv"
 HISTORY_CSV = "historico.csv"
@@ -21,7 +22,7 @@ def start_monitoring(
     target_email: str,
     delay: int,
     selector: Optional[str] = None,
-    ui_callback: Optional[Callable] = None # Novo: Permite atualizar a interface
+    ui_callback: Optional[Callable] = None
 ) -> None:
     print("\n[LOG] Starting monitoring loop...")
 
@@ -31,11 +32,13 @@ def start_monitoring(
         print("[ERROR] Could not get initial price. Halting.")
         return
 
-    # Corrigido a ordem: Moeda, Preço, Prefixo (igual ao verifier.py)
     currency, original_price, prefix = result
     current_price = original_price
 
     print(f"[LOG] Initial price established: {prefix} {original_price} {currency}")
+    
+    # 1º LOG: Salva no TXT que o monitoramento começou
+    log_action(f"Monitoramento Contínuo INICIADO para URL: {url} | Preço inicial: {original_price}")
 
     # Salva estado inicial
     _update_monitor_csv(target_email, url, original_price, current_price, currency)
@@ -60,13 +63,16 @@ def start_monitoring(
             print("[LOG] Failed to fetch new price in this cycle.")
             continue
 
-        # Corrigido a ordem aqui também
+        # É AQUI que a variável new_price é criada
         new_currency, new_price, new_prefix = result
         print(f"[LOG] Fetched current price: {new_prefix} {new_price} {new_currency}")
 
         # Lógica de Leilão: Só alerta e salva se o valor AUMENTAR
         if new_price > current_price and _is_valid_variation(current_price, new_price):
             print("[LOG] Valid price INCREASE detected!")
+            
+            # 2º LOG: Agora sim a variável new_price existe e podemos logar a mudança!
+            log_action(f"MUDANÇA DETECTADA! Valor subiu de {current_price} para {new_price} na URL: {url}")
 
             # 1. Salva os dois valores no histórico
             _append_history_csv(url, current_price, new_price, currency)
@@ -81,7 +87,7 @@ def start_monitoring(
             )
             send_email_notification(target_email, alert_subject, alert_body)
 
-            # 3. Se a UI passou um callback, avisa a UI para atualizar o número na tela
+            # 3. Avisa a UI para atualizar o número na tela
             if ui_callback:
                 ui_callback(new_price, new_currency, new_prefix)
 

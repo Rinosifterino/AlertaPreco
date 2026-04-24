@@ -14,6 +14,7 @@ from tkinter import messagebox
 from verifier import extract_price_and_currency
 from notifier import send_email_notification
 from monitor import start_monitoring
+from logger_util import log_action
 
 # =============================================================================
 # CONSTANTS
@@ -102,10 +103,12 @@ class AuctionApp:
         if not re.match(EMAIL_REGEX_PATTERN, email_input):
             messagebox.showerror("Validation Error", "Please enter a valid email address (e.g., user@domain.com).")
             return
-
-        # Salva o nome e e-mail na classe para usarmos depois no envio
+        
+        
+        # Salva o nome e e-mail na classe
         self.user_name = name_input
         self.user_email = email_input
+        log_action(f"Usuário Autenticado - Nome: {self.user_name} | Email: {self.user_email}")        
 
         print(f"[LOG] Usuário logado: {self.user_name} - Email: {self.user_email}")
         self.login_frame.destroy()
@@ -191,7 +194,7 @@ class AuctionApp:
 
         # Bloqueia a UI para indicar que está rodando
         self.save_button.configure(state="disabled", fg_color="#C0392B", text="Live Tracking Active")
-        messagebox.showinfo("Monitoring Active", "O sistema está agora monitorando o leilão a cada 60 segundos!")
+        messagebox.showinfo("Monitoring Active", "O sistema está agora monitorando o leilão!")
 
         # Inicia o monitor.py em uma Thread (daemon=True garante que ele feche quando você fechar a janela)
         monitor_thread = threading.Thread(
